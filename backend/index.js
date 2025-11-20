@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import db from './config/dbconnect.js';
 import authRouter from './routes/auth.routes.js';
+import CookieParser from 'cookie-parser';
 
 
 
@@ -14,6 +15,7 @@ const app=express();
  app.use(cors());
 //  To parse JSON request bodies(middlewares)
  app.use (express.json())
+ app.use(CookieParser());
 
 app.use("/api",authRouter);
 
