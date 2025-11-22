@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import db from './config/dbconnect.js';
 import authRouter from './routes/auth.routes.js';
 import CookieParser from 'cookie-parser';
+import teacherRouter from './routes/teacher.route.js';
 
 
 
@@ -17,7 +18,8 @@ const app=express();
  app.use (express.json())
  app.use(CookieParser());
 
-app.use("/api",authRouter);
+app.use("/api/auth",authRouter);
+app.use("/api/teacher",teacherRouter)
 
  try {
   await db.connect();   
