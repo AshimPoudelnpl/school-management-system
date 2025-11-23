@@ -5,6 +5,7 @@ import db from './config/dbconnect.js';
 import authRouter from './routes/auth.routes.js';
 import CookieParser from 'cookie-parser';
 import teacherRouter from './routes/teacher.route.js';
+import vacanyRouter from './routes/vacany.route.js';
 
 
 
@@ -20,6 +21,7 @@ const app=express();
 
 app.use("/api/auth",authRouter);
 app.use("/api/teacher",teacherRouter)
+app.use("/api/vacancy",vacanyRouter)
 
  try {
   await db.connect();   

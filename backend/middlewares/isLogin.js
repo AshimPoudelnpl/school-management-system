@@ -1,5 +1,4 @@
-
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
 export const islogin = async (req, res, next) => {
   try {
     const token = req.cookies.token;
@@ -9,10 +8,9 @@ export const islogin = async (req, res, next) => {
       });
     }
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
-    req.user=decoded;
+    req.user = decoded;
     next();
-
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
 };

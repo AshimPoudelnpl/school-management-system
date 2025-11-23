@@ -3,7 +3,6 @@ import db from "../config/dbconnect.js";
 export const addTeacher = async (req, res) => {
   try {
     const { name, email, phone, position } = req.body;
-    console.log(req.body);
 
     if (!name || !email || !phone || !position) {
       return res.status(400).json({ message: "All fiels are required" });
@@ -53,10 +52,51 @@ export const deleteteacher = async (req, res) => {
         message: `teacher not found with this ${id}`,
       });
     }
-    await db.execute("delete from teacher where id=?",[id])
+    await db.execute("delete from teacher where id=?", [id]);
     return res.status(200).json({
-        message:`Teachers is deletted Successfully ${id}`
-    })
+      message: `Teachers is deletted Successfully ${id}`,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+export const updateTeacher = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const { name, email, phone, position } = req.body;
+    console.log(req.body);
+    // chack if user is exists
+    const [teacher] = await db.execute("select * from teacher where id=?", [
+      id,
+    ]);
+
+    if (teacher.length === 0) {
+      return res.status(404).json({
+        message: "Teacher is not found",
+      });
+    }
+    const [existEmail] = await db.execute("select * from teacher where id=?", [
+      id,
+    ]);
+
+    if (existEmail.length > 0) {
+      return res.status(404).json({
+        message: "Emalil Already Exists",
+      });
+    }
+    const oldteacher = teacher[0];
+    await db.execute(
+      "update teacher set name=?,email=?,phone=?,position=? where id=?",
+      [
+        name ?? oldteacher.name,
+        email ?? oldteacher.email,
+        phone ?? oldteacher.phone,
+        position ?? oldteacher.position,
+        id,
+      ]
+    );
+    res.status(200).json({ message: "teacher updated successsfully" });
   } catch (error) {
     console.log(error);
   }

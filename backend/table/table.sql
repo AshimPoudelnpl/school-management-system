@@ -20,3 +20,11 @@ email varchar(150) NOT null unique,
 position varchar(255) not null,
 phone varchar(20) not null
 );
+
+CREATE TABLE vacancy (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    position VARCHAR(150) NOT NULL,
+    description TEXT NOT NULL,
+    deadline VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

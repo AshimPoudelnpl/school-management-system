@@ -70,7 +70,6 @@ export const login = async (req, res) => {
         token: token,
       },
     });
-    console.log(token);
   } catch (error) {
     console.log(error);
   }
