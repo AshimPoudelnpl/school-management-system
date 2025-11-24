@@ -1,6 +1,6 @@
 import db from "../config/dbconnect.js";
 
-export const addVacancy = async (req, res) => {
+export const addVacancy = async (req, res,next) => {
   try {
     const { position, description, deadline } = req.body;
     if (!position || !description || !deadline) {
@@ -16,10 +16,10 @@ export const addVacancy = async (req, res) => {
       message: "vacancy addded Successfully",
     });
   } catch (error) {
-    console.log(error);
+    next(error);
   }
 };
-export const getVacancy = async (req, res) => {
+export const getVacancy = async (req, res,next) => {
   try {
     const [resultvacancy] = await db.execute("select * from vacancy");
     console.log(resultvacancy);
@@ -28,10 +28,10 @@ export const getVacancy = async (req, res) => {
       result: resultvacancy,
     });
   } catch (error) {
-    console.log(error);
+    next(error);
   }
 };
-export const deleteVacancy = async (req, res) => {
+export const deleteVacancy = async (req, res,next) => {
   try {
     const { id } = req.params;
     const [existing] = await db.execute("select id from vacancy where id=?", [
@@ -48,6 +48,6 @@ export const deleteVacancy = async (req, res) => {
         message:"vacancy deleted successfully"
     })
   } catch (error) {
-    console.log(error);
+    next(error);
   }
 };

@@ -1,6 +1,6 @@
 import db from "../config/dbconnect.js";
 
-export const addTeacher = async (req, res) => {
+export const addTeacher = async (req, res, next) => {
   try {
     const { name, email, phone, position } = req.body;
 
@@ -25,10 +25,10 @@ export const addTeacher = async (req, res) => {
       data: results.insertId,
     });
   } catch (error) {
-    console.log(error);
+    next(error);
   }
 };
-export const getAllteachers = async (req, res) => {
+export const getAllteachers = async (req, res, next) => {
   try {
     const [result] = await db.execute("Select * from teacher");
     res.status(400).json({
@@ -37,10 +37,10 @@ export const getAllteachers = async (req, res) => {
     });
     console.log(result);
   } catch (error) {
-    console.log(error);
+    next(error);
   }
 };
-export const deleteteacher = async (req, res) => {
+export const deleteteacher = async (req, res, next) => {
   try {
     const { id } = req.params;
     console.log(id);
@@ -57,10 +57,10 @@ export const deleteteacher = async (req, res) => {
       message: `Teachers is deletted Successfully ${id}`,
     });
   } catch (error) {
-    console.log(error);
+    next(error);
   }
 };
-export const updateTeacher = async (req, res) => {
+export const updateTeacher = async (req, res, next) => {
   const { id } = req.params;
 
   try {
@@ -98,6 +98,6 @@ export const updateTeacher = async (req, res) => {
     );
     res.status(200).json({ message: "teacher updated successsfully" });
   } catch (error) {
-    console.log(error);
+    next(error);
   }
 };
