@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import Input from "./shared/Input";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
+  console.log("testing");
+  const navigate = useNavigate();
   const [formdata, setFormdata] = useState({
     email: "",
     password: "",
@@ -16,19 +20,27 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formdata.email || !formdata.password) {
+      toast.error("Please fill all the fields");
+      return;
+    }
     try {
       const res = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify(formdata),
       });
       const data = await res.json();
-      console.log(data);
-      alert(`${data.message}`);
+      alert("the data is");
+      toast.success(`${data.message}`);
+      if (res.status == 200) {
+        navigate("/dashboard");
+      }
     } catch (error) {
-      alert("Something wrong", error);
+      toast.error("Something wrong", error);
     }
   };
   return (
