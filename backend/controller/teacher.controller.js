@@ -31,7 +31,7 @@ export const addTeacher = async (req, res, next) => {
 export const getAllteachers = async (req, res, next) => {
   try {
     const [result] = await db.execute("Select * from teacher");
-    res.status(400).json({
+    res.status(200).json({
       message: "All teachers get Successfully",
       data: result,
     });
