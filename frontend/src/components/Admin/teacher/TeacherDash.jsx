@@ -1,25 +1,99 @@
-import React from "react";
-import { useGetALlTeachersQuery } from "../../../redux/features/teacherSlice";
+import { useState } from "react";
+import {
+  useDeleteTeacherMutation,
+  useGetAllTeachersQuery,
+  useUpdateTeacherMutation,
+} from "../../../redux/features/teacherSlice";
 import Loading from "../../shared/Loading";
 import { toast } from "react-toastify";
 
 const TeacherDash = () => {
-  const { data, isLoading, error } = useGetALlTeachersQuery();
+  const [teacherid, setTeacherid] = useState();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [originalData, setOriginalData] = useState({});
+  const [formdata, setFormdata] = useState({
+    name: "",
+    email: "",
+    position: "",
+    phone: "",
+  });
 
-  if (isLoading) 
-    return <Loading isLoading={isLoading}/>;
+  const { data, isLoading, error } = useGetAllTeachersQuery();
+  const [deleteTeacher] = useDeleteTeacherMutation();
+  const [updateTeacher] = useUpdateTeacherMutation();
+
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormdata((prev) => ({
+      ...prev,
+      [id]: value,
+    }));
+  };
+
+  if (isLoading) return <Loading isLoading={isLoading} />;
   if (error)
     return <p className="p-4 text-red-600">Failed to load teachers!</p>;
 
-  // Your API → data.data
   const teachers = data?.data || [];
-  const handleDelete=()=>{
-    toast.error("Hey you have login First")
-  }
-  const handleEdit=()=>{
-    toast.error("Hey you have build api fast")
-  }
 
+  // Delete teacher
+  const handleDelete = async (teacher) => {
+    setTeacherid(teacher.id);
+    try {
+      await deleteTeacher(teacher.id).unwrap();
+      toast.success(`${teacher.name} deleted successfully`);
+    } catch (error) {
+      toast.error("Failed to delete teacher");
+      console.log(error);
+    }
+  };
+
+  // Edit teacher
+  const handleEdit = (teacher) => {
+    setTeacherid(teacher.id);
+    setFormdata({
+      name: teacher.name,
+      email: teacher.email,
+      position: teacher.position,
+      phone: teacher.phone,
+    });
+    setOriginalData({
+      name: teacher.name,
+      email: teacher.email,
+      position: teacher.position,
+      phone: teacher.phone,
+    });
+    setIsModalOpen(true);
+  };
+
+  // Update teacher (only changed fields)
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    let updatedData = {};
+    if (formdata.name !== originalData.name) updatedData.name = formdata.name;
+    if (formdata.email !== originalData.email)
+      updatedData.email = formdata.email;
+    if (formdata.position !== originalData.position)
+      updatedData.position = formdata.position;
+    if (formdata.phone !== originalData.phone)
+      updatedData.phone = formdata.phone;
+
+    if (Object.keys(updatedData).length === 0) {
+      toast.info("No changes made");
+      return;
+    }
+
+    try {
+      const res= await updateTeacher({ id: teacherid, data: updatedData }).unwrap();
+      console.log(res)
+      toast.success(res.message||"Teacher updated Successfully");
+      setIsModalOpen(false);
+    } catch (error) {
+      toast.error(error?.data?.message||"Failed to update teacher");
+      console.log(error?.message);
+    }
+  };
 
   return (
     <div className="p-6">
@@ -45,7 +119,7 @@ const TeacherDash = () => {
                 Phone
               </th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                Result
+                Actions
               </th>
             </tr>
           </thead>
@@ -68,16 +142,23 @@ const TeacherDash = () => {
                 <td className="px-6 py-4 text-sm text-gray-700">
                   {teacher.phone}
                 </td>
-                
-                
-              
                 <td className="px-6 py-4 text-sm text-gray-700">
                   <div className="space-x-2">
-                    <button onClick={handleDelete}className="cursor-pointer bg-red-600  rounded-2xl">Delete</button>
-                    <button  onClick={handleEdit}className="cursor-pointer bg-red-600 rounded-2xl">Edit</button>
+                    <button
+                      onClick={() => handleDelete(teacher)}
+                      className="cursor-pointer bg-red-600 text-white px-3 py-1 rounded-2xl"
+                    >
+                      Delete
+                    </button>
+                    <button
+                      onClick={() => handleEdit(teacher)}
+                      className="cursor-pointer bg-blue-600 text-white px-3 py-1 rounded-2xl"
+                    >
+                      Edit
+                    </button>
                   </div>
                 </td>
-                </tr>
+              </tr>
             ))}
           </tbody>
         </table>
@@ -86,6 +167,64 @@ const TeacherDash = () => {
           <p className="p-4 text-center text-gray-500">No teacher data found</p>
         )}
       </div>
+
+      {/* Edit Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg w-96">
+            <h2 className="text-xl font-bold mb-4">Edit Teacher</h2>
+            <form onSubmit={handleSubmit}>
+              <input
+                type="text"
+                id="name"
+                placeholder="Name"
+                value={formdata.name}
+                onChange={handleChange}
+                className="w-full p-2 border rounded mb-3"
+              />
+              <input
+                type="email"
+                id="email"
+                placeholder="Email"
+                value={formdata.email}
+                onChange={handleChange}
+                className="w-full p-2 border rounded mb-3"
+              />
+              <input
+                type="text"
+                id="position"
+                placeholder="Position"
+                value={formdata.position}
+                onChange={handleChange}
+                className="w-full p-2 border rounded mb-3"
+              />
+              <input
+                type="text"
+                id="phone"
+                placeholder="Phone"
+                value={formdata.phone}
+                onChange={handleChange}
+                className="w-full p-2 border rounded mb-3"
+              />
+              <div className="flex justify-end space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 bg-gray-300 rounded"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded"
+                >
+                  Update
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
