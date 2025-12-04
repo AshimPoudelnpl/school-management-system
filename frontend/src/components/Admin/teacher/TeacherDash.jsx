@@ -12,8 +12,9 @@ const initialData = {
   email: "",
   position: "",
   phone: "",
+  image: null,
 };
-
+``;
 const TeacherDash = () => {
   const [teacherid, setTeacherid] = useState();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,10 +28,10 @@ const TeacherDash = () => {
   const [addteacher] = useAddTeacherMutation();
 
   const handleChange = (e) => {
-    const { id, value } = e.target;
+    const { id, value, files } = e.target;
     setFormdata((prev) => ({
       ...prev,
-      [id]: value,
+      [id]: files ? files[0] : value,
     }));
   };
 
@@ -76,7 +77,15 @@ const TeacherDash = () => {
     e.preventDefault();
     if (isAdding) {
       try {
-        const res = await addteacher(formdata).unwrap();
+        const formDataToSend = new FormData();
+        formDataToSend.append("name", formdata.name);
+        formDataToSend.append("email", formdata.email);
+        formDataToSend.append("position", formdata.position);
+        formDataToSend.append("phone", formdata.phone);
+        if (formdata.image) {
+          formDataToSend.append("image", formdata.image);
+        }
+        const res = await addteacher(formDataToSend).unwrap();
         toast.success(res.message);
         setFormdata(initialData);
         setIsModalOpen(false);
@@ -136,7 +145,7 @@ const TeacherDash = () => {
           <thead className="bg-gray-100">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                ID
+                Image
               </th>
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
                 Name
@@ -160,7 +169,17 @@ const TeacherDash = () => {
             {teachers.map((teacher) => (
               <tr key={teacher.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 text-sm text-gray-800">
-                  {teacher.id}
+                  {teacher.img ? (
+                    <img
+                      src={`${import.meta.env.VITE_IMAGE_URL}/${teacher.img}`}
+                      alt={teacher.img ? teacher.name : "No Image"}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center">
+                      <span className="text-gray-600 text-xs">No Image</span>
+                    </div>
+                  )}
                 </td>
                 <td className="px-6 py-4 text-sm font-medium text-gray-900">
                   {teacher.name}
@@ -240,6 +259,15 @@ const TeacherDash = () => {
                 onChange={handleChange}
                 className="w-full p-2 border rounded mb-3"
               />
+              {isAdding && (
+                <input
+                  type="file"
+                  id="image"
+                  accept="image/*"
+                  onChange={handleChange}
+                  className="w-full p-2 border rounded mb-3"
+                />
+              )}
               <div className="flex justify-end space-x-2">
                 <button
                   type="button"

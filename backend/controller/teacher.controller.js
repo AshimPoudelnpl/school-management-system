@@ -3,9 +3,15 @@ import multer from "multer";
 import fs from "fs";
 import { removeImage } from "../utils/removeImg.js";
 
+const storage = multer.diskStorage({
+  destination: "uploads/teachers",
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + "-" + file.originalname);
+  },
+});
 
-
-
+export const upload = multer({ storage: storage });
 
 export const addTeacher = async (req, res, next) => {
   try {
