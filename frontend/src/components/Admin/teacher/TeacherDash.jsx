@@ -1,26 +1,30 @@
 import { useState } from "react";
 import {
+  useAddTeacherMutation,
   useDeleteTeacherMutation,
   useGetAllTeachersQuery,
   useUpdateTeacherMutation,
 } from "../../../redux/features/teacherSlice";
 import Loading from "../../shared/Loading";
 import { toast } from "react-toastify";
+const initialData = {
+  name: "",
+  email: "",
+  position: "",
+  phone: "",
+};
 
 const TeacherDash = () => {
   const [teacherid, setTeacherid] = useState();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [originalData, setOriginalData] = useState({});
-  const [formdata, setFormdata] = useState({
-    name: "",
-    email: "",
-    position: "",
-    phone: "",
-  });
+  const [isAdding, setIsAdding] = useState(false);
+  const [formdata, setFormdata] = useState(initialData);
 
   const { data, isLoading, error } = useGetAllTeachersQuery();
   const [deleteTeacher] = useDeleteTeacherMutation();
   const [updateTeacher] = useUpdateTeacherMutation();
+  const [addteacher] = useAddTeacherMutation();
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -50,6 +54,7 @@ const TeacherDash = () => {
 
   // Edit teacher
   const handleEdit = (teacher) => {
+    setIsAdding(false);
     setTeacherid(teacher.id);
     setFormdata({
       name: teacher.name,
@@ -69,6 +74,17 @@ const TeacherDash = () => {
   // Update teacher (only changed fields)
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isAdding) {
+      try {
+        const res = await addteacher(formdata).unwrap();
+        toast.success(res.message);
+        setFormdata(initialData);
+        setIsModalOpen(false);
+      } catch (error) {
+        toast.error(error.data?.message);
+      }
+      return;
+    }
 
     let updatedData = {};
     if (formdata.name !== originalData.name) updatedData.name = formdata.name;
@@ -85,20 +101,36 @@ const TeacherDash = () => {
     }
 
     try {
-      const res= await updateTeacher({ id: teacherid, data: updatedData }).unwrap();
-      console.log(res)
-      toast.success(res.message||"Teacher updated Successfully");
+      const res = await updateTeacher({
+        id: teacherid,
+        data: updatedData,
+      }).unwrap();
+      console.log(res);
+      toast.success(res.message || "Teacher updated Successfully");
       setIsModalOpen(false);
     } catch (error) {
-      toast.error(error?.data?.message||"Failed to update teacher");
+      toast.error(error?.data?.message || "Failed to update teacher");
       console.log(error?.message);
     }
+  };
+  const handleAddTeacher = () => {
+    setIsModalOpen(true);
+    setIsAdding(true);
+    setTeacherid(null);
+    setFormdata(initialData);
   };
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Teachers List</h1>
-
+      <div className="flex justify-between mb-6">
+        <h1 className="text-2xl font-bold mb-4">Teachers List</h1>
+        <button
+          onClick={handleAddTeacher}
+          className="cursor-pointer bg-amber-700 text-white px-3 rounded-full"
+        >
+          Add Teacher
+        </button>
+      </div>
       <div className="overflow-x-auto bg-white rounded-lg shadow">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-100">
@@ -172,7 +204,9 @@ const TeacherDash = () => {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-lg w-96">
-            <h2 className="text-xl font-bold mb-4">Edit Teacher</h2>
+            <h2 className="text-xl font-bold mb-4">
+              {isAdding ? "Add" : "Edit"} Teacher
+            </h2>
             <form onSubmit={handleSubmit}>
               <input
                 type="text"
@@ -218,7 +252,7 @@ const TeacherDash = () => {
                   type="submit"
                   className="px-4 py-2 bg-blue-600 text-white rounded"
                 >
-                  Update
+                  {isAdding ? "Add" : "update"}
                 </button>
               </div>
             </form>

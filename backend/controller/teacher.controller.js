@@ -1,11 +1,21 @@
 import db from "../config/dbconnect.js";
+import multer from "multer";
+import fs from "fs";
+import { removeImage } from "../utils/removeImg.js";
+
+
+
+
 
 export const addTeacher = async (req, res, next) => {
   try {
     const { name, email, phone, position } = req.body;
 
     if (!name || !email || !phone || !position) {
-      return res.status(400).json({ message: "All fiels are required" });
+      if (req.file) {
+        removeImage(req.file.imagePath);
+      }
+      return res.status(400).json({ message: "All fields are required" });
     }
     const [existingEmail] = await db.execute(
       "select id from teacher where email=?",
@@ -16,13 +26,14 @@ export const addTeacher = async (req, res, next) => {
         message: "Email Already exists.use another email",
       });
     }
+    const imagePath = req.file ? `uploads/teachers/${req.file.filename}` : null;
     const [results] = await db.execute(
-      "insert into teacher (name,email,phone,position) values (?,?,?,?)",
-      [name, email, phone, position]
+      "insert into teacher (name,email,phone,position,img) values (?,?,?,?,?)",
+      [name, email, phone, position, imagePath]
     );
-    res.status(400).json({
+    res.status(201).json({
       message: "teachers added successfuly",
-      data: results.insertId,
+      image:imagePath,
     });
   } catch (error) {
     next(error);
@@ -35,7 +46,6 @@ export const getAllteachers = async (req, res, next) => {
       message: "All teachers get Successfully",
       data: result,
     });
-    console.log(result);
   } catch (error) {
     next(error);
   }
@@ -61,42 +71,52 @@ export const deleteteacher = async (req, res, next) => {
   }
 };
 export const updateTeacher = async (req, res, next) => {
-  const { id } = req.params;
-
   try {
+    const { id } = req.params;
     const { name, email, phone, position } = req.body;
-    console.log(req.body);
-    // chack if user is exists
-    const [teacher] = await db.execute("select * from teacher where id=?", [
+
+    // Check if teacher exists
+    const [existing] = await db.execute("SELECT * FROM teacher WHERE id = ?", [
       id,
     ]);
 
-    if (teacher.length === 0) {
+    if (existing.length === 0) {
       return res.status(404).json({
-        message: "Teacher is not found",
+        message: `Teacher not found with id ${id}`,
       });
     }
-    const [existEmail] = await db.execute("select * from teacher where id=?", [
-      id,
-    ]);
 
-    if (existEmail.length > 0) {
-      return res.status(404).json({
-        message: "Emalil Already Exists",
-      });
+    const teacher = existing[0];
+
+    // Use existing values if not provided
+    const updatedName = name || teacher.name;
+    const updatedEmail = email || teacher.email;
+    const updatedPhone = phone || teacher.phone;
+    const updatedPosition = position || teacher.position;
+
+    // Check if email already exists for another teacher
+    if (email && email !== teacher.email) {
+      const [emailCheck] = await db.execute(
+        "SELECT id FROM teacher WHERE email = ? AND id != ?",
+        [email, id]
+      );
+
+      if (emailCheck.length > 0) {
+        return res.status(409).json({
+          message: "Email already exists. Use another email.",
+        });
+      }
     }
-    const oldteacher = teacher[0];
+
+    // Update teacher
     await db.execute(
-      "update teacher set name=?,email=?,phone=?,position=? where id=?",
-      [
-        name ?? oldteacher.name,
-        email ?? oldteacher.email,
-        phone ?? oldteacher.phone,
-        position ?? oldteacher.position,
-        id,
-      ]
+      "UPDATE teacher SET name = ?, email = ?, phone = ?, position = ? WHERE id = ?",
+      [updatedName, updatedEmail, updatedPhone, updatedPosition, id]
     );
-    res.status(200).json({ message: "teacher updated successsfully" });
+
+    return res.status(200).json({
+      message: "Teacher updated successfully",
+    });
   } catch (error) {
     next(error);
   }

@@ -23,6 +23,9 @@ app.use(
 app.use(express.json());
 app.use(CookieParser());
 
+// Serve static files BEFORE routes
+app.use("/uploads", express.static("uploads"));
+
 app.use("/api/auth", authRouter);
 app.use("/api/teacher", teacherRouter);
 app.use("/api/vacancy", vacanyRouter);
