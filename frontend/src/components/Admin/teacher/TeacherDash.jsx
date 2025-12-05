@@ -34,6 +34,12 @@ const TeacherDash = () => {
       [id]: files ? files[0] : value,
     }));
   };
+  const handleFileChange = (e) => {
+    setFormdata((prev) => ({
+      ...prev,
+      image: e.target.files[0],
+    }));
+  };
 
   if (isLoading) return <Loading isLoading={isLoading} />;
   if (error)
@@ -77,15 +83,14 @@ const TeacherDash = () => {
     e.preventDefault();
     if (isAdding) {
       try {
-        const formDataToSend = new FormData();
-        formDataToSend.append("name", formdata.name);
-        formDataToSend.append("email", formdata.email);
-        formDataToSend.append("position", formdata.position);
-        formDataToSend.append("phone", formdata.phone);
-        if (formdata.image) {
-          formDataToSend.append("image", formdata.image);
-        }
-        const res = await addteacher(formDataToSend).unwrap();
+        const multerData = new FormData();
+        multerData.append("name", formdata.name);
+        multerData.append("email", formdata.email);
+        multerData.append("position", formdata.position);
+        multerData.append("phone", formdata.phone);
+        multerData.append("image", formdata.image);
+
+        const res = await addteacher(multerData).unwrap();
         toast.success(res.message);
         setFormdata(initialData);
         setIsModalOpen(false);
@@ -221,66 +226,70 @@ const TeacherDash = () => {
 
       {/* Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg w-96">
-            <h2 className="text-xl font-bold mb-4">
+        <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
+          <div className="bg-white shadow-lg rounded-xl w-96 p-6">
+            <h2 className="text-xl font-bold mb-4 text-gray-800">
               {isAdding ? "Add" : "Edit"} Teacher
             </h2>
-            <form onSubmit={handleSubmit}>
+
+            <form onSubmit={handleSubmit} className="space-y-3">
               <input
                 type="text"
                 id="name"
                 placeholder="Name"
                 value={formdata.name}
                 onChange={handleChange}
-                className="w-full p-2 border rounded mb-3"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
+
               <input
                 type="email"
                 id="email"
                 placeholder="Email"
                 value={formdata.email}
                 onChange={handleChange}
-                className="w-full p-2 border rounded mb-3"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
+
               <input
                 type="text"
                 id="position"
                 placeholder="Position"
                 value={formdata.position}
                 onChange={handleChange}
-                className="w-full p-2 border rounded mb-3"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
+
               <input
                 type="text"
                 id="phone"
                 placeholder="Phone"
                 value={formdata.phone}
                 onChange={handleChange}
-                className="w-full p-2 border rounded mb-3"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
-              {isAdding && (
-                <input
-                  type="file"
-                  id="image"
-                  accept="image/*"
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded mb-3"
-                />
-              )}
-              <div className="flex justify-end space-x-2">
+              <input
+                type="file"
+                id="image"
+                onChange={handleFileChange}
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                required={isAdding}
+              />
+
+              <div className="flex justify-end space-x-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 bg-gray-300 rounded"
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
                 >
                   Cancel
                 </button>
+
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 >
-                  {isAdding ? "Add" : "update"}
+                  {isAdding ? "Add" : "Update"}
                 </button>
               </div>
             </form>

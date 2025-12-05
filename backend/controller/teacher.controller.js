@@ -1,17 +1,5 @@
 import db from "../config/dbconnect.js";
-import multer from "multer";
-import fs from "fs";
 import { removeImage } from "../utils/removeImg.js";
-
-const storage = multer.diskStorage({
-  destination: "uploads/teachers",
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + "-" + file.originalname);
-  },
-});
-
-export const upload = multer({ storage: storage });
 
 export const addTeacher = async (req, res, next) => {
   try {
@@ -39,7 +27,7 @@ export const addTeacher = async (req, res, next) => {
     );
     res.status(201).json({
       message: "teachers added successfuly",
-      image:imagePath,
+      image: imagePath,
     });
   } catch (error) {
     next(error);
@@ -60,14 +48,21 @@ export const deleteteacher = async (req, res, next) => {
   try {
     const { id } = req.params;
     console.log(id);
-    const [existing] = await db.execute("select id from teacher where id=?", [
-      id,
-    ]);
+    const [existing] = await db.execute(
+      "select id,img from teacher where id=?",
+      [id]
+    );
     if (existing.length == 0) {
       return res.status(404).json({
         message: `teacher not found with this ${id}`,
       });
     }
+
+    // Delete image if exists
+    if (existing[0].img) {
+      removeImage(`uploads/teachers/${existing[0].img.split("/").pop()}`);
+    }
+
     await db.execute("delete from teacher where id=?", [id]);
     return res.status(200).json({
       message: `Teachers is deletted Successfully ${id}`,

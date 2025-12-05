@@ -22,7 +22,6 @@ export const addVacancy = async (req, res,next) => {
 export const getVacancy = async (req, res,next) => {
   try {
     const [resultvacancy] = await db.execute("select * from vacancy");
-    console.log(resultvacancy);
     res.status(201).json({
       message: "vacancy Published",
       result: resultvacancy,
