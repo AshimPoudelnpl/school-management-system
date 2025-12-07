@@ -12,7 +12,7 @@ const initialData = {
   email: "",
   position: "",
   phone: "",
-  image: null,
+  image: "",
 };
 ``;
 const TeacherDash = () => {
@@ -68,13 +68,9 @@ const TeacherDash = () => {
       email: teacher.email,
       position: teacher.position,
       phone: teacher.phone,
+      image: teacher.img,
     });
-    setOriginalData({
-      name: teacher.name,
-      email: teacher.email,
-      position: teacher.position,
-      phone: teacher.phone,
-    });
+    setOriginalData(teacher);
     setIsModalOpen(true);
   };
 
@@ -100,16 +96,30 @@ const TeacherDash = () => {
       return;
     }
 
-    let updatedData = {};
-    if (formdata.name !== originalData.name) updatedData.name = formdata.name;
-    if (formdata.email !== originalData.email)
-      updatedData.email = formdata.email;
-    if (formdata.position !== originalData.position)
-      updatedData.position = formdata.position;
-    if (formdata.phone !== originalData.phone)
-      updatedData.phone = formdata.phone;
+    let updatedData = new FormData();
 
-    if (Object.keys(updatedData).length === 0) {
+    if (formdata.name !== originalData.name) {
+      updatedData.append("name", formdata.name);
+    }
+
+    if (formdata.email !== originalData.email) {
+      updatedData.append("email", formdata.email);
+    }
+
+    if (formdata.position !== originalData.position) {
+      updatedData.append("position", formdata.position);
+    }
+
+    if (formdata.phone !== originalData.phone) {
+      updatedData.append("phone", formdata.phone);
+    }
+
+    // If image changed
+    if (formdata.image instanceof File) {
+      updatedData.append("image", formdata.image);
+    }
+
+    if ([...updatedData.keys()].length === 0) {
       toast.info("No changes made");
       return;
     }
@@ -268,6 +278,15 @@ const TeacherDash = () => {
                 onChange={handleChange}
                 className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
+              {formdata.image ? (
+                <img
+                  src={`${import.meta.env.VITE_IMAGE_URL}/${formdata.image}`}
+                  alt={formdata.name}
+                />
+              ) : (
+                <div>No Image Selected</div>
+              )}
+
               <input
                 type="file"
                 id="image"

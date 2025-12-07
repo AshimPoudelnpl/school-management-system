@@ -74,7 +74,20 @@ export const deleteteacher = async (req, res, next) => {
 export const updateTeacher = async (req, res, next) => {
   try {
     const { id } = req.params;
+  
+    
+    
+    if (!req.body) {
+      return res.status(400).json({
+        status: "Failed",
+        message: "Request body is undefined. Ensure multer middleware is configured correctly."
+      });
+    }
+    
     const { name, email, phone, position } = req.body;
+
+    console.log("BODY:", req.body);
+    console.log("FILE:", req.file);
 
     // Check if teacher exists
     const [existing] = await db.execute("SELECT * FROM teacher WHERE id = ?", [
@@ -89,13 +102,13 @@ export const updateTeacher = async (req, res, next) => {
 
     const teacher = existing[0];
 
-    // Use existing values if not provided
+    // Use previous values if fields not provided
     const updatedName = name || teacher.name;
     const updatedEmail = email || teacher.email;
     const updatedPhone = phone || teacher.phone;
     const updatedPosition = position || teacher.position;
 
-    // Check if email already exists for another teacher
+    // Check email duplicate (if changed)
     if (email && email !== teacher.email) {
       const [emailCheck] = await db.execute(
         "SELECT id FROM teacher WHERE email = ? AND id != ?",
@@ -109,16 +122,39 @@ export const updateTeacher = async (req, res, next) => {
       }
     }
 
-    // Update teacher
+    // Handle image update
+    let updatedImg = teacher.img;
+
+    if (req.file) {
+      updatedImg = `uploads/teachers/${req.file.filename}`;
+
+      // remove old image
+      if (teacher.img) {
+        const oldImgPath = `uploads/teachers/${teacher.img.split("/").pop()}`;
+        removeImage(oldImgPath);
+      }
+    }
+
+    // ✔ FIXED SQL (added img column)
     await db.execute(
-      "UPDATE teacher SET name = ?, email = ?, phone = ?, position = ? WHERE id = ?",
-      [updatedName, updatedEmail, updatedPhone, updatedPosition, id]
+      "UPDATE teacher SET name = ?, email = ?, phone = ?, position = ?, img = ? WHERE id = ?",
+      [
+        updatedName,
+        updatedEmail,
+        updatedPhone,
+        updatedPosition,
+        updatedImg,
+        id,
+      ]
     );
 
     return res.status(200).json({
+      status: "Success",
       message: "Teacher updated successfully",
     });
+
   } catch (error) {
     next(error);
   }
 };
+
