@@ -35,10 +35,27 @@ export const addTeacher = async (req, res, next) => {
 };
 export const getAllteachers = async (req, res, next) => {
   try {
-    const [result] = await db.execute("Select * from teacher");
+    let { page = 1, limit = 10 } = req.query;
+    page = Number(page);
+    limit = Number(limit);
+
+    const offset = (page - 1) * limit;
+
+    const [result] = await db.execute(
+      `SELECT * FROM teacher ORDER BY id DESC LIMIT ${limit} OFFSET ${offset}`
+    );
+    const [[{ total }]] = await db.execute(
+      "SELECT COUNT(*) as total FROM teacher"
+    );
     res.status(200).json({
       message: "All teachers get Successfully",
-      data: result,
+      teacher: result,
+      total,
+      offset,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      remainingTeachers: total - page * limit,
     });
   } catch (error) {
     next(error);
@@ -74,16 +91,15 @@ export const deleteteacher = async (req, res, next) => {
 export const updateTeacher = async (req, res, next) => {
   try {
     const { id } = req.params;
-  
-    
-    
+
     if (!req.body) {
       return res.status(400).json({
         status: "Failed",
-        message: "Request body is undefined. Ensure multer middleware is configured correctly."
+        message:
+          "Request body is undefined. Ensure multer middleware is configured correctly.",
       });
     }
-    
+
     const { name, email, phone, position } = req.body;
 
     console.log("BODY:", req.body);
@@ -138,23 +154,14 @@ export const updateTeacher = async (req, res, next) => {
     // ✔ FIXED SQL (added img column)
     await db.execute(
       "UPDATE teacher SET name = ?, email = ?, phone = ?, position = ?, img = ? WHERE id = ?",
-      [
-        updatedName,
-        updatedEmail,
-        updatedPhone,
-        updatedPosition,
-        updatedImg,
-        id,
-      ]
+      [updatedName, updatedEmail, updatedPhone, updatedPosition, updatedImg, id]
     );
 
     return res.status(200).json({
       status: "Success",
       message: "Teacher updated successfully",
     });
-
   } catch (error) {
     next(error);
   }
 };
-

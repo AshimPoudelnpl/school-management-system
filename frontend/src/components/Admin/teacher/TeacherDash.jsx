@@ -278,14 +278,12 @@ const TeacherDash = () => {
                 onChange={handleChange}
                 className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
-              {formdata.image ? (
+              {!isAdding && formdata.image ? (
                 <img
                   src={`${import.meta.env.VITE_IMAGE_URL}/${formdata.image}`}
                   alt={formdata.name}
                 />
-              ) : (
-                <div>No Image Selected</div>
-              )}
+              ) : null}
 
               <input
                 type="file"
