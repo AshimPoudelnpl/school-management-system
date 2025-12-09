@@ -15,7 +15,7 @@ const Dashboard = () => {
     if (!isAuth) {
       navigate("/not-found");
     }
-  }, [isAuth]);
+  }, []);
 
   const handleLogout = async () => {
     try {

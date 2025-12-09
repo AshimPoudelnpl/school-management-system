@@ -4,7 +4,8 @@ create table users(
 id int auto_increment primary key,
 name varchar(100) not null,
 email varchar(150) NOT null unique,
-password varchar(255) not null
+password varchar(255) not null,
+role ENUM('admin','teacher','student')  not Null default 'student'
 );
 
 insert into users(name,email,password) values

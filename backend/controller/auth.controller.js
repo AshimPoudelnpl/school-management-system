@@ -48,6 +48,7 @@ export const login = async (req, res, next) => {
         id: user.id,
         name: user.name,
         email: user.email,
+        role: user.role,
       },
       process.env.SECRET_KEY,
       { expiresIn: process.env.EXPIRE }
@@ -66,7 +67,7 @@ export const login = async (req, res, next) => {
       user: {
         id: user.id,
         email: user.email,
-       
+        role: user.role,
       },
     });
   } catch (error) {

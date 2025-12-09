@@ -7,6 +7,7 @@ import {
 } from "../../../redux/features/teacherSlice";
 import Loading from "../../shared/Loading";
 import { toast } from "react-toastify";
+import Pagination from "../../shared/Pagination";
 const initialData = {
   name: "",
   email: "",
@@ -21,11 +22,16 @@ const TeacherDash = () => {
   const [originalData, setOriginalData] = useState({});
   const [isAdding, setIsAdding] = useState(false);
   const [formdata, setFormdata] = useState(initialData);
+  const [page, setPage] = useState(1);
 
-  const { data, isLoading, error } = useGetAllTeachersQuery();
+  const { data, isLoading, error } = useGetAllTeachersQuery({page,limit:5});
   const [deleteTeacher] = useDeleteTeacherMutation();
   const [updateTeacher] = useUpdateTeacherMutation();
   const [addteacher] = useAddTeacherMutation();
+
+  
+  
+  const totalPages = data?.totalPages;
 
   const handleChange = (e) => {
     const { id, value, files } = e.target;
@@ -45,9 +51,8 @@ const TeacherDash = () => {
   if (error)
     return <p className="p-4 text-red-600">Failed to load teachers!</p>;
 
-  const teachers = data?.data || [];
+  const teachers = data?.teacher;
 
-  // Delete teacher
   const handleDelete = async (teacher) => {
     setTeacherid(teacher.id);
     try {
@@ -59,7 +64,6 @@ const TeacherDash = () => {
     }
   };
 
-  // Edit teacher
   const handleEdit = (teacher) => {
     setIsAdding(false);
     setTeacherid(teacher.id);
@@ -74,7 +78,6 @@ const TeacherDash = () => {
     setIsModalOpen(true);
   };
 
-  // Update teacher (only changed fields)
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isAdding) {
@@ -114,7 +117,6 @@ const TeacherDash = () => {
       updatedData.append("phone", formdata.phone);
     }
 
-    // If image changed
     if (formdata.image instanceof File) {
       updatedData.append("image", formdata.image);
     }
@@ -233,8 +235,8 @@ const TeacherDash = () => {
           <p className="p-4 text-center text-gray-500">No teacher data found</p>
         )}
       </div>
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
-      {/* Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
           <div className="bg-white shadow-lg rounded-xl w-96 p-6">

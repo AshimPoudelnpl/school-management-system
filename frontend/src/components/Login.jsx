@@ -39,7 +39,7 @@ const Login = () => {
       });
       const data = await res.json();
       toast.success(`${data.message}`);
-      dispatch(setUser(data?.user.email));
+      dispatch(setUser(data?.user));
       console.log(data);
 
       if (res.status == 200) {
