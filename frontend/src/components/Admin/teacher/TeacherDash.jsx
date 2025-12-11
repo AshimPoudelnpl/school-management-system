@@ -8,6 +8,7 @@ import {
 import Loading from "../../shared/Loading";
 import { toast } from "react-toastify";
 import Pagination from "../../shared/Pagination";
+import { useSelector } from "react-redux";
 const initialData = {
   name: "",
   email: "",
@@ -17,6 +18,7 @@ const initialData = {
 };
 ``;
 const TeacherDash = () => {
+  const { role } = useSelector((state) => state.user);
   const [teacherid, setTeacherid] = useState();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [originalData, setOriginalData] = useState({});
@@ -24,13 +26,11 @@ const TeacherDash = () => {
   const [formdata, setFormdata] = useState(initialData);
   const [page, setPage] = useState(1);
 
-  const { data, isLoading, error } = useGetAllTeachersQuery({page,limit:5});
+  const { data, isLoading, error } = useGetAllTeachersQuery({ page, limit: 5 });
   const [deleteTeacher] = useDeleteTeacherMutation();
   const [updateTeacher] = useUpdateTeacherMutation();
   const [addteacher] = useAddTeacherMutation();
 
-  
-  
   const totalPages = data?.totalPages;
 
   const handleChange = (e) => {
@@ -150,12 +150,14 @@ const TeacherDash = () => {
     <div className="p-6">
       <div className="flex justify-between mb-6">
         <h1 className="text-2xl font-bold mb-4">Teachers List</h1>
-        <button
-          onClick={handleAddTeacher}
-          className="cursor-pointer bg-amber-700 text-white px-3 rounded-full"
-        >
-          Add Teacher
-        </button>
+        {role == "admin" && (
+          <button
+            onClick={handleAddTeacher}
+            className="cursor-pointer bg-amber-700 text-white px-3 rounded-full"
+          >
+            Add Teacher
+          </button>
+        )}
       </div>
       <div className="overflow-x-auto bg-white rounded-lg shadow">
         <table className="min-w-full divide-y divide-gray-200">
@@ -210,22 +212,25 @@ const TeacherDash = () => {
                 <td className="px-6 py-4 text-sm text-gray-700">
                   {teacher.phone}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-700">
-                  <div className="space-x-2">
-                    <button
-                      onClick={() => handleDelete(teacher)}
-                      className="cursor-pointer bg-red-600 text-white px-3 py-1 rounded-2xl"
-                    >
-                      Delete
-                    </button>
-                    <button
-                      onClick={() => handleEdit(teacher)}
-                      className="cursor-pointer bg-blue-600 text-white px-3 py-1 rounded-2xl"
-                    >
-                      Edit
-                    </button>
-                  </div>
-                </td>
+                {role == "admin" && (
+                  <td className="px-6 py-4 text-sm text-gray-700">
+                    <div className="space-x-2">
+                      <button
+                        onClick={() => handleDelete(teacher)}
+                        className="cursor-pointer bg-red-600 text-white px-3 py-1 rounded-2xl"
+                      >
+                        Delete
+                      </button>
+                      <button
+                        onClick={() => handleEdit(teacher)}
+                        className="cursor-pointer bg-blue-600 text-white px-3 py-1 rounded-2xl"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  </td>
+                )}
+                
               </tr>
             ))}
           </tbody>
@@ -308,7 +313,7 @@ const TeacherDash = () => {
                   type="submit"
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 >
-                  {isAdding ? "Add" : "Update"}
+                  {isAdding && role == "admin" ? "Add" : "Update"}
                 </button>
               </div>
             </form>

@@ -1,5 +1,6 @@
 import db from "../config/dbconnect.js";
 import { removeImage } from "../utils/removeImg.js";
+import { compressImg } from "../utils/sharpHandler.js";
 
 export const addTeacher = async (req, res, next) => {
   const { role } = req.user;
@@ -24,7 +25,14 @@ export const addTeacher = async (req, res, next) => {
         message: "Email Already exists.use another email",
       });
     }
-    const imagePath = req.file ? `uploads/teachers/${req.file.filename}` : null;
+    let imagePath = "";
+    if (req.file ){
+      const outputPath=`uploads/teachers/school-${req.file.filename}`
+      await compressImg(req.file.path,outputPath);
+      imagePath = `${outputPath}`;
+      console.log(imagePath)
+    }
+
     const [results] = await db.execute(
       "insert into teacher (name,email,phone,position,img) values (?,?,?,?,?)",
       [name, email, phone, position, imagePath]

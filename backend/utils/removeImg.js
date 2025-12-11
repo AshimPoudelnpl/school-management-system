@@ -9,4 +9,4 @@ export const removeImage = (path) => {
     console.log(`file not found :${path }`);
   }
 };
-//remove image from uploads
+
